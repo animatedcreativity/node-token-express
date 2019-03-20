@@ -1,5 +1,5 @@
 {
-  "name": "node-token-user",
+  "name": "node-token-express",
   "version": "0.0.1",
   "description": "Simplest user login system using PIN or Token. Can also store user data. Implements sessions by itself.",
   "main": "main.js",
@@ -22,7 +22,7 @@
     "node": "8.x"
   },
   "repository": {
-    "url": "https://github.com/animatedcreativity/node-token-user"
+    "url": "https://github.com/animatedcreativity/node-token-express"
   },
   "license": "MIT",
   "keywords": [

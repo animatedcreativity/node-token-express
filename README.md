@@ -132,12 +132,15 @@ var app = new tokenExpress(config, express);
 
 **session.user:**
 
-After successful login, user data is fetched from database and stored in `session.user` object. You can fix session in `request` of every `express` endpoint. You can read/write data from user and call `.save()` method if needed.
+After successful login, user data is fetched from database and stored in `session.user` object. Session user can be found in `request` of every `express` endpoint. You can read/write data from/to user and call `.save()` method if needed.
 
 Example:
 
 ```
-express.get("/", function(request, response) {
+var tokenExpress = require("node-token-express");
+var app = new tokenExpress(config, express);
+
+app.express.get("/", function(request, response) {
   if (typeof request.session.user !== "undefined") { // if user is logged in
     console.log(request.session.user);
     request.session.user.data.name = "John Doe";

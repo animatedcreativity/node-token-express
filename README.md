@@ -177,7 +177,7 @@ var app = new tokenExpress(config, express);
 
 *`app.pouch`*
 
-- Very useful `node-pouch` instance to work with multiple databases. No need to develope separate database machanism for you App. Please check more here: https://www.npmjs.com/package/node-pouch
+- Very useful `node-pouch` instance to work with multiple databases. No need to develope separate database machanism for yoru App. Please check more here: https://www.npmjs.com/package/node-pouch
 
 *`app.wrapper`*  
 *`var {error, result} = await app.wrapper("result", promise)`*
@@ -196,7 +196,7 @@ var app = new tokenExpress(config, express);
 
 *`app.mailer`*
 
-- Fully ready nodemailer transport based on the mail settings that you provide in config. So, no need to generate your own email machanism. More here: https://www.npmjs.com/package/nodemailer
+- Fully ready nodemailer transport based on the mail settings that you provide in config. So, no need to create your own email machanism. More here: https://www.npmjs.com/package/nodemailer
 
 *`app.mail(emails, subject, text, html, from)`*
 
@@ -205,7 +205,7 @@ var app = new tokenExpress(config, express);
 - `subject`: email subject
 - `text`: email body as text
 - `html`: email body as html
-- `from`: default from provided config is used if you do not provide this. `{name: "From Name", email: "<from_email>"}`
+- `from`: default `from` provided config is used if you do not provide this. `{name: "From Name", email: "<from_email>"}`
 
 *`app.error(response, status, error)`*
 
@@ -224,7 +224,7 @@ var app = new tokenExpress(config, express);
 *`app.pin.new(length)`*
 
 - Generates a new pin number
-- `length`: optional and default is take from the provided config.
+- `length`: optional and default is taken from the provided config.
 
 *`app.pin.split(pin)`*
 

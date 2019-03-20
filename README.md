@@ -128,7 +128,9 @@ var app = new tokenExpress(config, express);
 
 - If `redirect.logout` is not set in config, it returns useful success/error messages.
 
-**session.user**
+-----------------------------------------------
+
+**session.user:**
 
 After successful login, user data is fetched from database and stored in `session.user` object. You can fix session in `request` of every `express` endpoint. You can read/write data from user and call `.save()` method if needed.
 

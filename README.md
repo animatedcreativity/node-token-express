@@ -87,7 +87,7 @@ var app = new tokenExpress(config, express);
 
 **Endpoints:**
 
-*(endpoint)/code*
+*/(endpoint)/code*
   
 - Generates a new token/pin code for an email address and stores it for a set time to allow login for user. Can store multiple codes too and expiry will work accordingly.
 
@@ -103,7 +103,7 @@ var app = new tokenExpress(config, express);
 
 ---------------------------------------------
 
-*(endpoint)/login*
+*/(endpoint)/login*
 
 - Checks the provided email and code and matches it with expiry time and stores user in session as successful login. You can make changes to the data of session's user object and call provided `.save()` method.
 
@@ -120,7 +120,7 @@ var app = new tokenExpress(config, express);
 
 -----------------------------------------------
 
-*(endpoint)/logout*
+*/(endpoint)/logout*
 
 - Removes user from session as successful logout.
 
@@ -151,3 +151,91 @@ app.express.get("/", function(request, response) {
   }
 });
 ```
+
+-------------------------------------------
+
+**The `tokenExpress` app:**
+
+The app has some more goodies instead of just `express`.
+
+```
+var tokenExpress = require("node-token-express");
+var app = new tokenExpress(config, express);
+```
+
+*`app.express`*
+
+- Returns express instance to work with endpoints.
+
+*`new app.user(email, app)`*
+
+- Creates new user instance if you want to work with a user's data and save it back. Check *session.user* section above.
+
+*`var randomToken = app.random.generate(32);`*
+
+- Generates a random token
+
+*`app.pouch`*
+
+- Very useful `node-pouch` instance to work with multiple databases. No need to develope separate database machanism for you App. Please check more here: https://www.npmjs.com/package/node-pouch
+
+*`app.wrapper`*  
+*`var {error, result} = await app.wrapper("result", promise)`*
+
+- Wraps promises, more here: https://www.npmjs.com/package/node-promise-wrapper
+
+*`app.sanitize`*  
+*`app.sanitize.options(options, { ... default options ... })`*
+
+- Options sanitizer, more here: https://www.npmjs.com/package/node-sanitize-options
+
+*`app.email`*  
+*`app.email.validate(email)`*
+
+- Email validator, more here: https://www.npmjs.com/package/email-validator
+
+*`app.mailer`*
+
+- Fully ready nodemailer transport based on the mail settings that you provide in config. So, no need to generate your own email machanism. More here: https://www.npmjs.com/package/nodemailer
+
+*`app.mail(emails, subject, text, html, from)`*
+
+- Sends mail
+- `emails`: array of emails to send mails to
+- `subject`: email subject
+- `text`: email body as text
+- `html`: email body as html
+- `from`: default from provided config is used if you do not provide this. `{name: "From Name", email: "<from_email>"}`
+
+*`app.error(response, status, error)`*
+
+- Returns error object as a reponse from the endpoint
+- `response`: `express`'s response object
+- `status`: any reponse code number
+- `error`: error text
+
+*`app.message(response, status, message)`*
+
+- Returns message object as a reponse from the endpoint
+- `response`: `express`'s response object
+- `status`: any reponse code number
+- `message`: message text
+
+*`app.pin.new(length)`*
+
+- Generates a new pin number
+- `length`: optional and default is take from the provided config.
+
+*`app.pin.split(pin)`*
+
+- Splits a pin into multiple parts using spaces, settings are used from the provided config.
+- `pin`: the pin number to split
+
+*`app.shortCodes(layout, options)`*
+
+- Replaces short codes in a `layout` text based on the provided `options`
+- `options`: an object of all short codes
+
+*`app.time(milliseconds)`*
+
+- Converts milliseconds into a readable time format

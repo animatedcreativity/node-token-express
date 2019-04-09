@@ -7,6 +7,7 @@ exports = module.exports = function() {
     pinError: 104,
     tokenError: 104,
     success: 200,
-    successError: 201
+    successError: 201,
+    updateError: 109
   }
 };

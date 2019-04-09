@@ -1,6 +1,6 @@
 {
   "name": "node-token-express",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Simplest user login system using PIN or Token. Can also store user data. Implements sessions by itself.",
   "main": "main.js",
   "scripts": {
@@ -9,14 +9,16 @@
   "dependencies": {
     "express": "^4.16.4",
     "node-sanitize-options": "^0.0.6",
-    "node-pouch": "^0.0.3",
     "express-formidable": "^1.2.0",
     "express-session": "^1.15.6",
     "node-promise-wrapper": "^0.0.2",
     "email-validator": "^2.0.4",
     "nodemailer": "^5.1.1",
     "secure-pin": "^1.0.14",
-    "randomstring": "^1.1.5"
+    "randomstring": "^1.1.5",
+    "node-file-config": "^0.0.5",
+    "request": "^2.88.0",
+    "node-pouch": "^0.0.3"
   },
   "engines": {
     "node": "8.x"

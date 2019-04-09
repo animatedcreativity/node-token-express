@@ -49,6 +49,10 @@ exports = module.exports = function() {
         `
       }
     },
+    apiKey: {
+      parts: 4,
+      length: 10
+    },
     method: "token",
     pin: {
       expire: 15, // in minutes

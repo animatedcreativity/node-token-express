@@ -3,3 +3,5 @@ users*
 test*
 .glitch-assets
 shrinkwrap.yaml
+node-token-express*
+database*

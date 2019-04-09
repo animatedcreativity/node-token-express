@@ -2,8 +2,8 @@ exports = module.exports = function(config, express) {
   var wrapper = require("node-promise-wrapper");
   var sanitize = require("node-sanitize-options");
   var fs = require("fs");
-  if (fs.existsSync("./config.js") === true) config = sanitize.options(config, require("./config.js")());
-  config = sanitize.options(config, {});
+  var fileConfig = require("node-file-config")("node-token-express");
+  config = fileConfig.get(config);
   if (config.database.folder !== "undefined" && config.database.folder.trim()) {
     if (fs.existsSync(config.database.folder) === false) fs.mkdirSync(config.database.folder);
   }
@@ -112,6 +112,16 @@ exports = module.exports = function(config, express) {
       if (seconds) return seconds + " second" + end(seconds);
       return "";
     },
+    apiKey: {
+      new: function() {
+        var key = "";
+        for (var i=0; i<=config.apiKey.parts-1; i++) {
+          if (key !== "") key += "-";
+          key += app.random.generate(config.apiKey.length);
+        }
+        return key;
+      }
+    },
     start: function() {
       express.post("/" + config.endpoint + "/logout", async function(request, response) {
         if (typeof request.user !== "undefined") {
@@ -129,21 +139,21 @@ exports = module.exports = function(config, express) {
           }
         }
       });
-      express.post("/" + config.endpoint + "/login", async function(request, response) {
+      var checkEmail = function(request, response, next) {
+        var email;
+        if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase().trim();
+        if (typeof email === "undefined" || app.email.validate(email) === false) {
+          app.error(response, app.status.emailError, "Email error.");
+          return false;
+        }
+        next();
+      };
+      var checkCode = async function(request, response, next) {
         if (typeof request.session.user !== "undefined") {
           app.message(response, app.status.successError, "Already logged in.");
           return false;
         }
-        var email;
-        if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase();
-        if (typeof email === "undefined") {
-          app.error(response, app.status.emailError, "Email error.");
-          return false;
-        }
-        if (app.email.validate(email) === false) {
-          app.error(response, app.status.emailError, "Email error.");
-          return false;
-        }
+        var email = request.fields.email.toLowerCase().trim();
         var code;
         if (typeof request.fields.code !== "undefined") code = request.fields.code;
         if (typeof code === "undefined") {
@@ -157,34 +167,46 @@ exports = module.exports = function(config, express) {
           return false;
         }
         if (Date.now() >= codeObject.time && Date.now() <= codeObject.valid) {
-          var {error, user} = await app.wrapper("user", app.user(email, app));
-          if (typeof user !== "undefined") {
-            request.session.user = user;
-            if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
-              response.redirect(config.redirect.login);
-            } else {
-              app.message(response, app.status.success, "Logged in.");
-            }
-          } else {
-            app.error(response, app.status.userError, "User error.");
-            return false;
-          }
+          next();
         } else {
           app.error(response, app.status.codeError, "Code error.");
           return false;
         }
+      };
+      express.post("/" + config.endpoint + "/login", [checkEmail, checkCode], async function(request, response) {
+        var email = request.fields.email.toLowerCase().trim();
+        var {error, user} = await app.wrapper("user", app.user(email, app));
+        if (typeof user !== "undefined") {
+          request.session.user = user;
+          if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
+            response.redirect(config.redirect.login);
+          } else {
+            app.message(response, app.status.success, "Logged in.");
+          }
+        } else {
+          app.error(response, app.status.userError, "User error.");
+          return false;
+        }
       });
-      express.post("/" + config.endpoint + "/code", async function(request, response) {
-        var email;
-        if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase();
-        if (typeof email === "undefined") {
-          app.error(response, app.status.emailError, "Email error.");
+      express.post("/" + config.endpoint + "/key", [checkEmail, checkCode], async function(request, response) {
+        var email = request.fields.email.toLowerCase().trim();
+        var {error, user} = await app.wrapper("user", app.user(email, app));
+        if (typeof user !== "undefined") {
+          user.apiKey = app.apiKey.new();
+          var {result} = await app.wrapper("result", user.save());
+          if (typeof result !== "undefined") {
+            app.message(response, app.status.success, {apiKey: user.apiKey, text: "API key generated."});
+          } else {
+            app.error(response, app.status.updateError, "Update error.");
+            return false;
+          }
+        } else {
+          app.error(response, app.status.userError, "User error.");
           return false;
         }
-        if (app.email.validate(email) === false) {
-          app.error(response, app.status.emailError, "Email error.");
-          return false;
-        }
+      });
+      express.post("/" + config.endpoint + "/code", checkEmail, async function(request, response) {
+        var email = request.fields.email.toLowerCase().trim();
         var code, time;
         if (config.method === "token") {
           code = app.random.generate(config.token.length);

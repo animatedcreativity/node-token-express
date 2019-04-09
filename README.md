@@ -114,6 +114,21 @@ var app = new tokenExpress(config, express);
 
 - If `redirect.login` is not set in config, it returns useful success/error messages.
 
+---------------------------------------------
+
+*/(endpoint)/key*
+
+- Checks the provided email and code and matches it with expiry time, generates a new API key and saves it with user at `user.apiKey`.
+
+- Required form values:
+
+```
+{
+  email: "<email>",
+  code: "<token/pin_code>" // as sent via email
+}
+```
+
 -----------------------------------------------
 
 */(endpoint)/logout*
@@ -235,3 +250,7 @@ var app = new tokenExpress(config, express);
 *`app.time(milliseconds)`*
 
 - Converts milliseconds into a readable time format
+
+*`app.apiKey.new()`*
+
+- Generates a new API key based on the config.

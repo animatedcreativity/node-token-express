@@ -192,7 +192,7 @@ exports = module.exports = function(config, express) {
         var email = request.fields.email.toLowerCase().trim();
         var {error, user} = await app.wrapper("user", app.user(email, app));
         if (typeof user !== "undefined") {
-          user.apiKey = app.apiKey.new();
+          user.data.apiKey = app.apiKey.new();
           var {result} = await app.wrapper("result", user.save());
           if (typeof result !== "undefined") {
             app.message(response, app.status.success, {apiKey: user.apiKey, text: "API key generated."});

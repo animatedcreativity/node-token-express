@@ -21,7 +21,7 @@ exports = module.exports = function(config, express) {
   express.use(session(config.session));
   express.use(formParser());
   var app = {
-    status: require("./status.js"),
+    status: require("./status.js")(),
     user: require("./user.js"),
     random: require("randomstring"),
     pouch: new nodePouch(config.database.name, config.database.folder),

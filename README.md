@@ -173,7 +173,7 @@ var app = new tokenExpress(config, express);
 
 *`app.pouch`*
 
-- Very useful `node-pouch` instance to work with multiple databases. No need to develope separate database machanism for yoru App. Please check more here: https://www.npmjs.com/package/node-pouch
+- Very useful `node-pouch` instance to work with multiple databases. No need to develope separate database machanism for your App. Please check more here: https://www.npmjs.com/package/node-pouch
 
 *`app.wrapper`*  
 *`var {error, result} = await app.wrapper("result", promise)`*

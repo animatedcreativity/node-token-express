@@ -21,6 +21,7 @@ exports = module.exports = function(config, express) {
   express.use(session(config.session));
   express.use(formParser());
   var app = {
+    status: require("./status.js"),
     user: require("./user.js"),
     random: require("randomstring"),
     pouch: new nodePouch(config.database.name, config.database.folder),
@@ -118,41 +119,41 @@ exports = module.exports = function(config, express) {
           if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
             response.redirect(config.redirect.logout);
           } else {
-            app.message(response, 100, "Logged out.");
+            app.message(response, app.status.success, "Logged out.");
           }
         } else {
           if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
             response.redirect(config.redirect.logout);
           } else {
-            app.message(response, 100, "Not logged in.");
+            app.message(response, app.status.success, "Not logged in.");
           }
         }
       });
       express.post("/" + config.endpoint + "/login", async function(request, response) {
         if (typeof request.session.user !== "undefined") {
-          app.message(response, 100, "Already logged in.");
+          app.message(response, app.status.successError, "Already logged in.");
           return false;
         }
         var email;
         if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase();
         if (typeof email === "undefined") {
-          app.error(response, 103, "Email error.");
+          app.error(response, app.status.emailError, "Email error.");
           return false;
         }
         if (app.email.validate(email) === false) {
-          app.error(response, 103, "Email error.");
+          app.error(response, app.status.emailError, "Email error.");
           return false;
         }
         var code;
         if (typeof request.fields.code !== "undefined") code = request.fields.code;
         if (typeof code === "undefined") {
-          app.error(response, 106, "Code error.");
+          app.error(response, app.status.codeError, "Code error.");
           return false;
         }
         // TODO: Clean expired tokens from DB here, to save on database space.
         var {error, codeObject} = await app.wrapper("codeObject", app.pouch.record({email: email, code: code}, config.database.code));
         if (typeof codeObject === "undefined") {
-          app.error(response, 106, "Code error.");
+          app.error(response, app.status.codeError, "Code error.");
           return false;
         }
         if (Date.now() >= codeObject.time && Date.now() <= codeObject.valid) {
@@ -162,14 +163,14 @@ exports = module.exports = function(config, express) {
             if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
               response.redirect(config.redirect.login);
             } else {
-              app.message(response, 100, "Logged in.");
+              app.message(response, app.status.success, "Logged in.");
             }
           } else {
-            app.error(response, 107, "User error.");
+            app.error(response, app.status.userError, "User error.");
             return false;
           }
         } else {
-          app.error(response, 106, "Code error.");
+          app.error(response, app.status.codeError, "Code error.");
           return false;
         }
       });
@@ -177,11 +178,11 @@ exports = module.exports = function(config, express) {
         var email;
         if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase();
         if (typeof email === "undefined") {
-          app.error(response, 103, "Email error.");
+          app.error(response, app.status.emailError, "Email error.");
           return false;
         }
         if (app.email.validate(email) === false) {
-          app.error(response, 103, "Email error.");
+          app.error(response, app.status.emailError, "Email error.");
           return false;
         }
         var code, time;
@@ -194,7 +195,7 @@ exports = module.exports = function(config, express) {
           time = config.pin.expire * 60 * 1000;
         }
         if (typeof code === "undefined") {
-          app.error(response, 105, "Method error.");
+          app.error(response, app.status.methodError, "Method error.");
           return false;
         }
         var {error, result} = await app.wrapper("result", app.pouch.save({
@@ -205,7 +206,7 @@ exports = module.exports = function(config, express) {
           valid: Date.now() + time
         }, config.database.code));
         if (typeof result === "undefined") {
-          app.error(response, 104, config.method + " error.");
+          app.error(response, app.status[config.method + "Error"], config.method + " error.");
           return false;
         }
         var options = {
@@ -220,9 +221,9 @@ exports = module.exports = function(config, express) {
         var subject = app.shortCodes(config.mail.template.subject, options);
         var {error, sent} = await app.wrapper("sent", app.mail([email, config.mail.copy], subject, "", body));
         if (typeof sent !== "undefined") {
-          app.message(response, 100, config.method + " sent.");
+          app.message(response, app.status.success, config.method + " sent.");
         } else {
-          app.error(response, 104, config.method + " error.");
+          app.error(response, app.status[config.method + "Error"], config.method + " error.");
         }
       });
     },

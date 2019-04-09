@@ -221,7 +221,7 @@ exports = module.exports = function(config, express) {
           return false;
         }
         var {error, result} = await app.wrapper("result", app.pouch.save({
-          _id: app.random.generate(16),
+          _id: app.random.generate(32),
           email: email,
           code: code,
           time: Date.now(),

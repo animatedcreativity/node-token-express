@@ -118,7 +118,7 @@ var app = new tokenExpress(config, express);
 
 */(endpoint)/key*
 
-- Checks the provided email and code and matches it with expiry time, generates a new API key and saves it with user at `user.apiKey`.
+- Checks the provided email and code and matches it with expiry time, generates a new API key and saves it with user at `user.data.apiKey`.
 
 - Required form values:
 

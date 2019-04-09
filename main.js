@@ -195,7 +195,7 @@ exports = module.exports = function(config, express) {
           user.data.apiKey = app.apiKey.new();
           var {result} = await app.wrapper("result", user.save());
           if (typeof result !== "undefined") {
-            app.message(response, app.status.success, {apiKey: user.apiKey, text: "API key generated."});
+            app.message(response, app.status.success, {apiKey: user.data.apiKey, text: "API key generated."});
           } else {
             app.error(response, app.status.updateError, "Update error.");
             return false;

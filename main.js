@@ -66,7 +66,7 @@ exports = module.exports = function(config, express) {
       var result = {status: status};
       if (typeof error !== "undefined") result.error = error;
       if (typeof message !== "undefined") result.message = message;
-      return response.send(JSON.stringify(result));
+      return response.json(result);
     },
     error: function(response, status, error) {
       return app.json(response, status, error);
@@ -220,7 +220,7 @@ exports = module.exports = function(config, express) {
           app.error(response, app.status.methodError, "Method error.");
           return false;
         }
-        var {error, result} = await app.wrapper("result", app.pouch.save({_id: app.random.generate(32), email: email}));
+        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}));
         if (typeof result !== "undefined") {
           var {error, user} = await app.wrapper("user", app.pouch.record({email: email}));
           if (typeof user === "undefined") {

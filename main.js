@@ -189,13 +189,19 @@ exports = module.exports = function(config, express) {
         }
       });
       express.post("/" + config.endpoint + "/key", [checkEmail, checkCode], async function(request, response) {
+        var reset;
+        if (typeof request.fields.reset !== "undefined") reset = request.fields.reset;
         var email = request.fields.email.toLowerCase().trim();
         var {error, user} = await app.wrapper("user", app.user(email, app));
         if (typeof user !== "undefined") {
-          user.data.apiKey = app.apiKey.new();
-          var {result} = await app.wrapper("result", user.save());
+          if (typeof reset !== "undefined" || typeof user.data.apiKey === "undefined") {
+            user.data.apiKey = app.apiKey.new();
+            var {result} = await app.wrapper("result", user.save());
+          } else {
+            var result = {};
+          }
           if (typeof result !== "undefined") {
-            app.message(response, app.status.success, {apiKey: user.data.apiKey, text: "API key generated."});
+            app.message(response, app.status.success, {apiKey: user.data.apiKey});
           } else {
             app.error(response, app.status.updateError, "Update error.");
             return false;

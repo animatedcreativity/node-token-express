@@ -155,8 +155,8 @@ exports = module.exports = function(config, express) {
         }
         var email = request.fields.email.toLowerCase().trim();
         var code;
-        if (typeof request.fields.code !== "undefined") code = request.fields.code;
-        if (typeof code === "undefined") {
+        if (typeof request.fields.code !== "undefined") code = request.fields.code.split(" ").join("");
+        if (typeof code === "undefined" || code.trim() === "") {
           app.error(response, app.status.codeError, "Code error.");
           return false;
         }

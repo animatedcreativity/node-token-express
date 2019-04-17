@@ -20,7 +20,7 @@ var app = new tokenExpress(config, express);
   endpoint: "user", // API endpoint for express pages like login, logout & code generation
   expressPort: 3000, // express port
   session: { // express session options to facilitate user login sessions based on tokens/pins.
-    secret: "ZkmemBozCBHaHNvbVXD3"
+    secret: "ZkmemBozCBHaHNvbVXD3",
     resave: false,
     saveUninitialized: false
   },

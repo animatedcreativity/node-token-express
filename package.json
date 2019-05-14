@@ -1,6 +1,6 @@
 {
   "name": "node-token-express",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Simplest user login system using PIN or Token. Can also store user data. Implements sessions by itself.",
   "main": "main.js",
   "scripts": {

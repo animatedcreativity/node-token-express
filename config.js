@@ -5,7 +5,10 @@ exports = module.exports = function() {
     session: {
       secret: "ZkmemBozCBHaHNvbVXD3",
       resave: false,
-      saveUninitialized: false
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 15 // 15 days
+      }
     },
     sessionPath: ".session-store",
     database: {

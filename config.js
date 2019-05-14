@@ -7,6 +7,7 @@ exports = module.exports = function() {
       resave: false,
       saveUninitialized: false
     },
+    sessionPath: ".session-store",
     database: {
       folder: "users/",
       name: "user",

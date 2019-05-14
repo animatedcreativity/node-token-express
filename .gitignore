@@ -5,3 +5,4 @@ test*
 shrinkwrap.yaml
 node-token-express*
 database*
+.session-store*

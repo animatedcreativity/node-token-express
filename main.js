@@ -16,8 +16,12 @@ exports = module.exports = function(config, express) {
   }
   var formParser = require("express-formidable");
   var session = require("express-session");
+  var fileStore = require('session-file-store')(session);
   var nodemailer = require("nodemailer");
   var nodePouch = require("node-pouch");
+  config.session.store = new fileStore({
+    path: config.sessionPath
+  });
   express.use(session(config.session));
   express.use(formParser());
   var app = {

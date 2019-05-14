@@ -1,6 +1,7 @@
 # node-token-express
 
-Simplest user login system using PIN or Token. Can also store user data. Implements sessions by itself.
+Simplest user login system using PIN or Token. Can also store user data. Implements sessions by itself.  
+Sessions are stored on disk now.
 
 ----------------------------------------------
 

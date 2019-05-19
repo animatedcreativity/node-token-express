@@ -19,6 +19,7 @@ exports = module.exports = function(config, express) {
   var fileStore = require('session-file-store')(session);
   var nodemailer = require("nodemailer");
   var nodePouch = require("node-pouch");
+  var dbpouch = require("dbpouch");
   config.session.store = new fileStore({
     path: config.sessionPath
   });
@@ -28,7 +29,7 @@ exports = module.exports = function(config, express) {
     status: require("./status.js")(),
     user: require("./user.js"),
     random: require("randomstring"),
-    pouch: new nodePouch(config.database.name, config.database.folder),
+    pouch: config.database.remote.use !== true ? new nodePouch(config.database.name, config.database.folder) : new dbpouch(config.database.remote),
     wrapper: wrapper,
     email: require("email-validator"),
     fs: fs,

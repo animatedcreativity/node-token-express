@@ -12,6 +12,12 @@ exports = module.exports = function() {
     },
     sessionPath: ".session-store",
     database: {
+      remote: {
+        use: false,
+        link: "<remote_link_here>",
+        apiKey: "<your_api_key_here>",
+        database: "user"
+      },
       folder: "users/",
       name: "user",
       code: "code"

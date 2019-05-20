@@ -14,9 +14,13 @@ exports = module.exports = function() {
     database: {
       remote: {
         use: false,
-        link: "<remote_link_here>",
-        apiKey: "<your_api_key_here>",
-        database: "user"
+        database: "user",
+        cdn: {
+          email: "<email>",
+          apiKey: "<apiKey>",
+          domain: "<domain/space>",
+          folder: "<folder>"
+        }
       },
       folder: "users/",
       name: "user",

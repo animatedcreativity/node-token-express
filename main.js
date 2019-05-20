@@ -4,9 +4,6 @@ exports = module.exports = function(config, express) {
   var fs = require("fs");
   var fileConfig = require("node-file-config")("node-token-express");
   config = fileConfig.get(config);
-  if (config.database.folder !== "undefined" && config.database.folder.trim()) {
-    if (fs.existsSync(config.database.folder) === false) fs.mkdirSync(config.database.folder);
-  }
   var _express = require('express');
   var provided = {express: false}
   if (typeof express === "undefined") {

@@ -229,6 +229,7 @@ exports = module.exports = function(config, express) {
           app.error(response, app.status.methodError, "Method error.");
           return false;
         }
+        console.log(app.config, app.config.database);
         var {error, result} = await app.wrapper("result", app.pouch.save({email: email}, app.config.database.name));
         if (typeof result !== "undefined") {
           var {error, user} = await app.wrapper("user", app.pouch.record({email: email}));

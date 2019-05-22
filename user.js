@@ -2,7 +2,7 @@ exports = module.exports = function(email, app) {
   var mod = {
     data: undefined,
     save: function() {
-      return app.pouch.save(mod.data);
+      return app.pouch.save(mod.data, app.config.database.name);
     }
   };
   return new Promise(async function(resolve, reject) {

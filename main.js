@@ -23,6 +23,7 @@ exports = module.exports = function(config, express) {
   express.use(session(config.session));
   express.use(formParser());
   var app = {
+    config: config,
     status: require("./status.js")(),
     user: require("./user.js"),
     random: require("randomstring"),
@@ -228,7 +229,7 @@ exports = module.exports = function(config, express) {
           app.error(response, app.status.methodError, "Method error.");
           return false;
         }
-        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}));
+        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}, app.config.database.name));
         if (typeof result !== "undefined") {
           var {error, user} = await app.wrapper("user", app.pouch.record({email: email}));
           if (typeof user === "undefined") {
@@ -240,7 +241,6 @@ exports = module.exports = function(config, express) {
           return false;
         }
         var {error, result} = await app.wrapper("result", app.pouch.save({
-          _id: app.random.generate(32),
           email: email,
           code: code,
           time: Date.now(),

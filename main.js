@@ -23,7 +23,6 @@ exports = module.exports = function(config, express) {
   express.use(session(config.session));
   express.use(formParser());
   var app = {
-    config: config,
     status: require("./status.js")(),
     user: require("./user.js"),
     random: require("randomstring"),
@@ -178,7 +177,7 @@ exports = module.exports = function(config, express) {
       };
       express.post("/" + config.endpoint + "/login", [checkEmail, checkCode], async function(request, response) {
         var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app));
+        var {error, user} = await app.wrapper("user", app.user(email, app, config));
         if (typeof user !== "undefined") {
           request.session.user = user;
           if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
@@ -195,7 +194,7 @@ exports = module.exports = function(config, express) {
         var reset;
         if (typeof request.fields.reset !== "undefined") reset = request.fields.reset;
         var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app));
+        var {error, user} = await app.wrapper("user", app.user(email, app, config));
         if (typeof user !== "undefined") {
           if (typeof reset !== "undefined" || typeof user.data.apiKey === "undefined") {
             user.data.apiKey = app.apiKey.new();
@@ -229,10 +228,9 @@ exports = module.exports = function(config, express) {
           app.error(response, app.status.methodError, "Method error.");
           return false;
         }
-        console.log(app.config, app.config.database);
-        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}, app.config.database.name));
+        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}, config.database.name));
         if (typeof result !== "undefined") {
-          var {error, user} = await app.wrapper("user", app.pouch.record({email: email}));
+          var {error, user} = await app.wrapper("user", app.pouch.record({email: email}, config.database.name));
           if (typeof user === "undefined") {
             app.error(response, app.status.userError, "User error.");
             return false;

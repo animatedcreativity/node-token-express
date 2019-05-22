@@ -177,7 +177,7 @@ exports = module.exports = function(config, express) {
       };
       express.post("/" + config.endpoint + "/login", [checkEmail, checkCode], async function(request, response) {
         var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app, config));
+        var {error, user} = await app.wrapper("user", app.user(email, app));
         if (typeof user !== "undefined") {
           request.session.user = user;
           if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
@@ -194,7 +194,7 @@ exports = module.exports = function(config, express) {
         var reset;
         if (typeof request.fields.reset !== "undefined") reset = request.fields.reset;
         var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app, config));
+        var {error, user} = await app.wrapper("user", app.user(email, app));
         if (typeof user !== "undefined") {
           if (typeof reset !== "undefined" || typeof user.data.apiKey === "undefined") {
             user.data.apiKey = app.apiKey.new();

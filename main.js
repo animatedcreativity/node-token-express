@@ -228,7 +228,8 @@ exports = module.exports = function(config, express) {
           app.error(response, app.status.methodError, "Method error.");
           return false;
         }
-        var {error, result} = await app.wrapper("result", app.pouch.save({email: email}, config.database.name));
+        var {existingUser} = await app.wrapper("existingUser", app.pouch.record({email: email}, config.database.name));
+        var {error, result} = await app.wrapper("result", app.pouch.save({_id: typeof existingUser !== "undefined" ? existingUser._id : undefined, email: email}, config.database.name));
         if (typeof result !== "undefined") {
           var {error, user} = await app.wrapper("user", app.pouch.record({email: email}, config.database.name));
           if (typeof user === "undefined") {

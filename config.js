@@ -15,6 +15,10 @@ exports = module.exports = function() {
       remote: {
         use: false,
         database: "user",
+        offline: {
+          use: false,
+          folder: "<folder>"
+        },
         cdn: {
           email: "<email>",
           apiKey: "<apiKey>",

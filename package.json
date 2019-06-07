@@ -20,7 +20,7 @@
     "request": "^2.88.0",
     "node-pouch": "^0.0.3",
     "session-file-store": "^1.2.0",
-    "dbpouch": "^0.1.6"
+    "dbpouch": "^0.1.7"
   },
   "engines": {
     "node": "8.x"

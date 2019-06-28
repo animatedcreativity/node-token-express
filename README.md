@@ -18,34 +18,52 @@ var app = new tokenExpress(config, express);
 ```
 /*** config ***/
 {
-  endpoint: "user", // API endpoint for express pages like login, logout & code generation
-  expressPort: 3000, // express port
-  session: { // express session options to facilitate user login sessions based on tokens/pins.
+  endpoint: "user",
+  expressPort: 3000,
+  session: {
     secret: "ZkmemBozCBHaHNvbVXD3",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 15 // 15 days
+    }
   },
+  sessionPath: ".session-store",
   database: {
-    folder: "users/", // database parent folder, leave blank to use root folder
-    name: "user", // database for storing users with data that you change
-    code: "code" // database for storing temporarily generated tokens/pins
+    remote: {
+      use: false,
+      database: "user",
+      offline: {
+        use: false,
+        folder: "<folder>"
+      },
+      cdn: {
+        email: "<email>",
+        apiKey: "<apiKey>",
+        domain: "<domain/space>",
+        folder: "<folder>"
+      }
+    },
+    folder: "users/",
+    name: "user",
+    code: "code"
   },
-  redirect: { // API endpoints return success/error objects if redirects are not used
-    login: "", // redirect after successful login
-    logout: "" // redirect after successful logout
+  redirect: {
+    login: "",
+    logout: ""
   },
-  mail: { // for sending tokens/pins
-    host: "smtp.gmail.com", // mail server
+  mail: {
+    host: "smtp.gmail.com",
     username: "<gmail_username>",
     password: "<gmaiL_password>",
     port: 465,
     secure: true,
-    from: { // send mail as
+    from: {
       name: "From Name",
       email: "<from_email>"
     },
-    copy: "<copy_email>", // send a copy of mails to this address too, leave blank if not needed
-    template: { // mail template
+    copy: "<copy_email>",
+    template: {
       subject: "Your <short-code-method-upper /> to our services",
       body: `
         Hello <short-code-name /> (<short-code-email />)!
@@ -67,11 +85,15 @@ var app = new tokenExpress(config, express);
       `
     }
   },
-  method: "token", // token/pin
+  apiKey: {
+    parts: 4,
+    length: 10
+  },
+  method: "token",
   pin: {
     expire: 15, // in minutes
     length: 6,
-    split: 2 // for better PIN display for memorizing
+    split: 2
   },
   token: {
     expire: 60, // in minutes

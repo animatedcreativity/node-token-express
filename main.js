@@ -124,149 +124,159 @@ exports = module.exports = function(config, express) {
         return key;
       }
     },
-    start: function() {
-      express.post("/" + config.endpoint + "/logout", async function(request, response) {
-        if (typeof request.user !== "undefined") {
-          delete request.user;
-          if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
-            response.redirect(config.redirect.logout);
-          } else {
-            app.message(response, app.status.success, "Logged out.");
+    endpoints: {
+      user: {
+        helper: {
+          checkEmail: function(request, response, next) {
+            var email;
+            if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase().trim();
+            if (typeof email === "undefined" || app.email.validate(email) === false) {
+              app.error(response, app.status.emailError, "Email error.");
+              return false;
+            }
+            next();
+          },
+          checkCode: async function(request, response, next) {
+            if (typeof request.session.user !== "undefined") {
+              app.message(response, app.status.successError, "Already logged in.");
+              return false;
+            }
+            var email = request.fields.email.toLowerCase().trim();
+            var code;
+            if (typeof request.fields.code !== "undefined") code = request.fields.code.split(" ").join("");
+            if (typeof code === "undefined" || code.trim() === "") {
+              app.error(response, app.status.codeError, "Code error.");
+              return false;
+            }
+            // TODO: Clean expired tokens from DB here, to save on database space.
+            var {error, codeObject} = await app.wrapper("codeObject", app.pouch.record({email: email, code: code}, config.database.code));
+            if (typeof codeObject === "undefined") {
+              app.error(response, app.status.codeError, "Code error.");
+              return false;
+            }
+            if (Date.now() >= codeObject.time && Date.now() <= codeObject.valid) {
+              next();
+            } else {
+              app.error(response, app.status.codeError, "Code error.");
+              return false;
+            }
           }
-        } else {
-          if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
-            response.redirect(config.redirect.logout);
+        },
+        logout: async function(request, response) {
+          if (typeof request.user !== "undefined") {
+            delete request.user;
+            if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
+              response.redirect(config.redirect.logout);
+            } else {
+              app.message(response, app.status.success, "Logged out.");
+            }
           } else {
-            app.message(response, app.status.success, "Not logged in.");
+            if (typeof config.redirect.logout !== "undefined" && config.redirect.logout.trim()) {
+              response.redirect(config.redirect.logout);
+            } else {
+              app.message(response, app.status.success, "Not logged in.");
+            }
           }
-        }
-      });
-      var checkEmail = function(request, response, next) {
-        var email;
-        if (typeof request.fields.email !== "undefined") email = request.fields.email.toLowerCase().trim();
-        if (typeof email === "undefined" || app.email.validate(email) === false) {
-          app.error(response, app.status.emailError, "Email error.");
-          return false;
-        }
-        next();
-      };
-      var checkCode = async function(request, response, next) {
-        if (typeof request.session.user !== "undefined") {
-          app.message(response, app.status.successError, "Already logged in.");
-          return false;
-        }
-        var email = request.fields.email.toLowerCase().trim();
-        var code;
-        if (typeof request.fields.code !== "undefined") code = request.fields.code.split(" ").join("");
-        if (typeof code === "undefined" || code.trim() === "") {
-          app.error(response, app.status.codeError, "Code error.");
-          return false;
-        }
-        // TODO: Clean expired tokens from DB here, to save on database space.
-        var {error, codeObject} = await app.wrapper("codeObject", app.pouch.record({email: email, code: code}, config.database.code));
-        if (typeof codeObject === "undefined") {
-          app.error(response, app.status.codeError, "Code error.");
-          return false;
-        }
-        if (Date.now() >= codeObject.time && Date.now() <= codeObject.valid) {
-          next();
-        } else {
-          app.error(response, app.status.codeError, "Code error.");
-          return false;
-        }
-      };
-      express.post("/" + config.endpoint + "/login", [checkEmail, checkCode], async function(request, response) {
-        var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app));
-        if (typeof user !== "undefined") {
-          request.session.user = user;
-          if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
-            response.redirect(config.redirect.login);
+        },
+        login: async function(request, response) {
+          var email = request.fields.email.toLowerCase().trim();
+          var {error, user} = await app.wrapper("user", app.user(email, app));
+          if (typeof user !== "undefined") {
+            request.session.user = user;
+            if (typeof config.redirect.login !== "undefined" && config.redirect.login.trim()) {
+              response.redirect(config.redirect.login);
+            } else {
+              app.message(response, app.status.success, "Logged in.");
+            }
           } else {
-            app.message(response, app.status.success, "Logged in.");
-          }
-        } else {
-          app.error(response, app.status.userError, "User error.");
-          return false;
-        }
-      });
-      express.post("/" + config.endpoint + "/key", [checkEmail, checkCode], async function(request, response) {
-        var reset;
-        if (typeof request.fields.reset !== "undefined") reset = request.fields.reset;
-        var email = request.fields.email.toLowerCase().trim();
-        var {error, user} = await app.wrapper("user", app.user(email, app));
-        if (typeof user !== "undefined") {
-          if (typeof reset !== "undefined" || typeof user.data.apiKey === "undefined") {
-            user.data.apiKey = app.apiKey.new();
-            var {result} = await app.wrapper("result", user.save());
-          } else {
-            var result = {};
-          }
-          if (typeof result !== "undefined") {
-            app.message(response, app.status.success, {apiKey: user.data.apiKey});
-          } else {
-            app.error(response, app.status.updateError, "Update error.");
-            return false;
-          }
-        } else {
-          app.error(response, app.status.userError, "User error.");
-          return false;
-        }
-      });
-      express.post("/" + config.endpoint + "/code", checkEmail, async function(request, response) {
-        var email = request.fields.email.toLowerCase().trim();
-        var code, time;
-        if (config.method === "token") {
-          code = app.random.generate(config.token.length);
-          time = config.token.expire * 60 * 1000;
-        }
-        if (config.method === "pin") {
-          code = app.pin.new();
-          time = config.pin.expire * 60 * 1000;
-        }
-        if (typeof code === "undefined") {
-          app.error(response, app.status.methodError, "Method error.");
-          return false;
-        }
-        var {existingUser} = await app.wrapper("existingUser", app.pouch.record({email: email}, config.database.name));
-        var {error, result} = await app.wrapper("result", app.pouch.save({_id: typeof existingUser !== "undefined" ? existingUser._id : undefined, email: email}, config.database.name));
-        if (typeof result !== "undefined") {
-          var {error, user} = await app.wrapper("user", app.pouch.record({email: email}, config.database.name));
-          if (typeof user === "undefined") {
             app.error(response, app.status.userError, "User error.");
             return false;
           }
-        } else {
-          app.error(response, app.status.userError, "User error.");
-          return false;
+        },
+        key: async function(request, response) {
+          var reset;
+          if (typeof request.fields.reset !== "undefined") reset = request.fields.reset;
+          var email = request.fields.email.toLowerCase().trim();
+          var {error, user} = await app.wrapper("user", app.user(email, app));
+          if (typeof user !== "undefined") {
+            if (typeof reset !== "undefined" || typeof user.data.apiKey === "undefined") {
+              user.data.apiKey = app.apiKey.new();
+              var {result} = await app.wrapper("result", user.save());
+            } else {
+              var result = {};
+            }
+            if (typeof result !== "undefined") {
+              app.message(response, app.status.success, {apiKey: user.data.apiKey});
+            } else {
+              app.error(response, app.status.updateError, "Update error.");
+              return false;
+            }
+          } else {
+            app.error(response, app.status.userError, "User error.");
+            return false;
+          }
+        },
+        code: async function(request, response) {
+          var email = request.fields.email.toLowerCase().trim();
+          var code, time;
+          if (config.method === "token") {
+            code = app.random.generate(config.token.length);
+            time = config.token.expire * 60 * 1000;
+          }
+          if (config.method === "pin") {
+            code = app.pin.new();
+            time = config.pin.expire * 60 * 1000;
+          }
+          if (typeof code === "undefined") {
+            app.error(response, app.status.methodError, "Method error.");
+            return false;
+          }
+          var {existingUser} = await app.wrapper("existingUser", app.pouch.record({email: email}, config.database.name));
+          var {error, result} = await app.wrapper("result", app.pouch.save({_id: typeof existingUser !== "undefined" ? existingUser._id : undefined, email: email}, config.database.name));
+          if (typeof result !== "undefined") {
+            var {error, user} = await app.wrapper("user", app.pouch.record({email: email}, config.database.name));
+            if (typeof user === "undefined") {
+              app.error(response, app.status.userError, "User error.");
+              return false;
+            }
+          } else {
+            app.error(response, app.status.userError, "User error.");
+            return false;
+          }
+          var {error, result} = await app.wrapper("result", app.pouch.save({
+            email: email,
+            code: code,
+            time: Date.now(),
+            valid: Date.now() + time
+          }, config.database.code));
+          if (typeof result === "undefined") {
+            app.error(response, app.status[config.method + "Error"], config.method + " error.");
+            return false;
+          }
+          var options = {
+            name: email.split("@")[0],
+            code: config.method === "token" ? code : app.pin.split(code).join(" "),
+            email: email,
+            time: app.time(time),
+            method: config.method,
+            "method-upper": config.method.toUpperCase()
+          };
+          var body = app.shortCodes(config.mail.template.body, options);
+          var subject = app.shortCodes(config.mail.template.subject, options);
+          var {error, sent} = await app.wrapper("sent", app.mail([email, config.mail.copy], subject, "", body));
+          if (typeof sent !== "undefined") {
+            app.message(response, app.status.success, config.method + " sent.");
+          } else {
+            app.error(response, app.status[config.method + "Error"], config.method + " error.");
+          }
         }
-        var {error, result} = await app.wrapper("result", app.pouch.save({
-          email: email,
-          code: code,
-          time: Date.now(),
-          valid: Date.now() + time
-        }, config.database.code));
-        if (typeof result === "undefined") {
-          app.error(response, app.status[config.method + "Error"], config.method + " error.");
-          return false;
-        }
-        var options = {
-          name: email.split("@")[0],
-          code: config.method === "token" ? code : app.pin.split(code).join(" "),
-          email: email,
-          time: app.time(time),
-          method: config.method,
-          "method-upper": config.method.toUpperCase()
-        };
-        var body = app.shortCodes(config.mail.template.body, options);
-        var subject = app.shortCodes(config.mail.template.subject, options);
-        var {error, sent} = await app.wrapper("sent", app.mail([email, config.mail.copy], subject, "", body));
-        if (typeof sent !== "undefined") {
-          app.message(response, app.status.success, config.method + " sent.");
-        } else {
-          app.error(response, app.status[config.method + "Error"], config.method + " error.");
-        }
-      });
+      }
+    },
+    start: function() {
+      express.post("/" + config.endpoint + "/logout", app.endpoints.user.logout);
+      express.post("/" + config.endpoint + "/login", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.login);
+      express.post("/" + config.endpoint + "/key", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.key);
+      express.post("/" + config.endpoint + "/code", app.endpoints.user.helper.checkEmail, app.endpoints.user.code);
     },
     listen: function() {
       var listener = app.express.listen(config.expressPort, function() {

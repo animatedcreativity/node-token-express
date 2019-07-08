@@ -4,24 +4,26 @@ exports = module.exports = function(config, express) {
   var fs = require("fs");
   var fileConfig = require("node-file-config")("node-token-express");
   config = fileConfig.get(config);
-  var _express = require('express');
-  var provided = {express: false}
-  if (typeof express === "undefined") {
-    express = _express();
-  } else {
-    provided.express = true;
+  if (config.expressPort > 0) {
+    var _express = require('express');
+    var provided = {express: false}
+    if (typeof express === "undefined") {
+      express = _express();
+    } else {
+      provided.express = true;
+    }
+    var formParser = require("express-formidable");
+    var session = require("express-session");
+    var fileStore = require('session-file-store')(session);
+    var nodePouch = require("node-pouch");
+    config.session.store = new fileStore({
+      path: config.sessionPath
+    });
+    express.use(session(config.session));
+    express.use(formParser());
   }
-  var formParser = require("express-formidable");
-  var session = require("express-session");
-  var fileStore = require('session-file-store')(session);
   var nodemailer = require("nodemailer");
-  var nodePouch = require("node-pouch");
   var dbpouch = require("dbpouch");
-  config.session.store = new fileStore({
-    path: config.sessionPath
-  });
-  express.use(session(config.session));
-  express.use(formParser());
   var app = {
     status: require("./status.js")(),
     user: require("./user.js"),
@@ -273,10 +275,12 @@ exports = module.exports = function(config, express) {
       }
     },
     start: function() {
-      express.post("/" + config.endpoint + "/logout", app.endpoints.user.logout);
-      express.post("/" + config.endpoint + "/login", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.login);
-      express.post("/" + config.endpoint + "/key", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.key);
-      express.post("/" + config.endpoint + "/code", app.endpoints.user.helper.checkEmail, app.endpoints.user.code);
+      if (config.expressPort > 0) {
+        express.post("/" + config.endpoint + "/logout", app.endpoints.user.logout);
+        express.post("/" + config.endpoint + "/login", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.login);
+        express.post("/" + config.endpoint + "/key", [app.endpoints.user.helper.checkEmail, app.endpoints.user.helper.checkCode], app.endpoints.user.key);
+        express.post("/" + config.endpoint + "/code", app.endpoints.user.helper.checkEmail, app.endpoints.user.code);
+      }
     },
     listen: function() {
       var listener = app.express.listen(config.expressPort, function() {
@@ -285,6 +289,6 @@ exports = module.exports = function(config, express) {
     }
   };
   app.start();
-  if (provided.express === false) app.listen();
+  if (provided.express === false && config.expressPort > 0) app.listen();
   return app;
 };
